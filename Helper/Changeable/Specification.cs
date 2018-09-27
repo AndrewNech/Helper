@@ -9,64 +9,76 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Windows;
+using Helper.Abstract;
 
-namespace Helper
+namespace Helper.Changeable
 {
-    //string path = "";
-    class WordExecutor
+    class Specification
     {
         string pathOfChangElement = Directory.GetCurrentDirectory() + @"\doc\changeable";
         string pathOfInitialData = @"doc\initial_data";
 
-
         MainWindow mainWindow;
-        public WordExecutor(MainWindow mainWindow)
+        List<Product> products = new List<Product>();
+        public Specification(MainWindow mainWindow, List<Product> products)
         {
             this.mainWindow = mainWindow;
+            this.products = products;
+        }
 
-        }
-        public void PrepareChangeableDoc()
+
+
+        public void PrepareSpecification()
         {
-            CreateOffer();
+            CreateDocument();
         }
-        private void CreateOffer()
+        public void CreateDocument()
         {
-            var wordApp = new Word.Application();
-            var wordDoc = wordApp.Documents.Add(pathOfChangElement + @"\offer.docx");//Открываем шаблон
+            var wordApp = new Microsoft.Office.Interop.Word.Application();
+            var wordDoc = wordApp.Documents.Add(pathOfChangElement + @"\specification.docx");//Открываем шаблон
 
             //Вставляем все данные
             SetHeader(wordDoc);
             ReplaceStub("{num}", mainWindow.ProcedureNumberTextBox.Text, wordDoc); //Заменяем метку на данные из формы(здесь конкретно из текстбокса с именем textBox_fio)
-            ReplaceStub("{to_whom}", mainWindow.ClientTextBox.Text, wordDoc); //Заменяем метку на данные из формы(здесь конкретно из текстбокса с именем textBox_fio)
             SetExecutor(wordDoc);
             ReplaceStub("{date}", mainWindow.date.Text, wordDoc);
-            ReplaceStub("{guarantee}", mainWindow.guaranteeTextBox.Text, wordDoc);
+            ChangeTable(wordDoc);
             SetMoney(wordDoc);
 
             //Сохраняем
-            wordDoc.SaveAs2(@"D:\Job\Манометр\Helper\Helper\bin\Debug\doc\changeable\offerTmp.docx");
+            wordDoc.SaveAs2(@"D:\Job\Манометр\Helper\Helper\bin\Debug\doc\changeable\specificationTmp.docx");
             wordDoc.Close();
 
             //Открываем полученный результат( тут будет рзветвление)
-            Process.Start(@"D:\Job\Манометр\Helper\Helper\bin\Debug\doc\changeable\offerTmp.docx");
+            Process.Start(@"D:\Job\Манометр\Helper\Helper\bin\Debug\doc\changeable\specificationTmp.docx");//Вынести в константу
+        }
+        private void ChangeTable(Document wordDoc)
+        {
+            WordTable table = new WordTable(products, wordDoc);
+            table.EditWordTable();
+
+
         }
 
-        private void SetMoney(Document wordDoc)
+        public void SetMoney(Document wordDoc)
         {
             //Общая сумма
-            ReplaceStub("{sum_with_tax}", mainWindow.SummWithTaxTextBox.Text, wordDoc);
+            ReplaceStub("{sum_with_tax}", WordTable.sumMoney.sum_with_tax.ToString("0.00"), wordDoc);
+            //Общая сумма прописью
             StringBuilder result = new StringBuilder();
-            decimal sum = Decimal.Parse(mainWindow.SummWithTaxTextBox.Text);
+            decimal sum = Decimal.Parse(WordTable.sumMoney.sum_with_tax.ToString("0.00"));
             Sum.Пропись(sum, Валюта.Рубли, result);
             ReplaceStub("{sum_in_string}", result.ToString(), wordDoc);
-            //В том числе НДС
-            ReplaceStub("{tax}", (sum*0.2M).ToString(), wordDoc);
             result.Clear();
-            ReplaceStub("{tax_in_string}", Sum.Пропись(sum*0.2M, Валюта.Рубли, result).ToString(), wordDoc);
-
-
+            //НДС
+            ReplaceStub("{sum_tax}", WordTable.sumMoney.sum_tax.ToString("0.00"), wordDoc);
+            //Ндс прописью
+            sum = Decimal.Parse(WordTable.sumMoney.sum_tax.ToString("0.00"));
+            Sum.Пропись(sum, Валюта.Рубли, result);
+            ReplaceStub("{sum_tax_in_string}", result.ToString(), wordDoc);
+            result.Clear();
         }
-        private void SetExecutor(Document wordDoc)
+        public void SetExecutor(Document wordDoc)
         {
             switch (mainWindow.ExecutorComboBox.Text)
             {
@@ -92,7 +104,7 @@ namespace Helper
                     }
             }
         }
-        private void SetHeader(Document wordDoc)
+        public void SetHeader(Document wordDoc)
         {
             if (mainWindow.manomRadioBut.IsChecked == true)
             {

@@ -16,6 +16,11 @@ using System.Windows.Shapes;
 using System.IO;
 using Microsoft.Win32;
 using System.Diagnostics;
+using Helper.ViewModel;
+using Helper.Changeable;
+
+
+
 
 namespace Helper
 {
@@ -28,7 +33,7 @@ namespace Helper
         {
             InitializeComponent();
         }
-
+        List<Product> products = new List<Product>();
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
 
@@ -44,14 +49,49 @@ namespace Helper
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
             openFileDialog.ShowDialog();
-           
+
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-        WordExecutor wordExecutor = new WordExecutor(this);
-            wordExecutor.PrepareChangeableDoc();
+            Specification specification = new Specification(this, products);
+            specification.PrepareSpecification();
+            Offer offer = new Offer(this);
+            offer.PrepareOffer();
         }
 
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            DataGrid product = new DataGrid();
+            //MVVM
+        }
+
+        private void DataGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            products.Clear();
+            productGrid.ItemsSource = null;
+            //productGrid.DataContext = new Product(1, "", "", 0, "", 0.0);
+            int count = 1;
+            if (productCount.Value != null)
+            {
+                double tmp = (double)productCount.Value;
+                count = (int)tmp;
+            }
+            productGrid.ItemsSource = CreateListForGrid(count);
+
+        }
+        private List<Product> CreateListForGrid(int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                products.Add(new Product(i + 1, "", "", 0, "", 0.0));
+            }
+            return products;
+        }
     }
 }

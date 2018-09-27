@@ -3,18 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:winforms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        xmlns:local="clr-namespace:Helper"
-        xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="Helper.MainWindow"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    x:Class="Helper.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="700" Width="1300">
-    <Grid>
-        <Grid.RowDefinitions>
-
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-
-        </Grid.ColumnDefinitions>
+        Title="MainWindow" Height="800" Width="1300">
+    <Grid x:Name="mainGrid">
         <Rectangle Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="328" Margin="799,30,0,0" Stroke="Black" VerticalAlignment="Top" Width="348"/>
 
 
@@ -28,10 +23,10 @@
         <CheckBox Content="Копия приказа о вступлении в должность" HorizontalAlignment="Left" Margin="809,76,0,0" VerticalAlignment="Top" IsChecked="True"/>
         <RadioButton Content="Копия устава МанометрПро" HorizontalAlignment="Left" Margin="809,115,0,0" VerticalAlignment="Top" Height="16" GroupName="groupDoc"/>
         <RadioButton Content="Копия устава КомпанияХолл" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="16" IsChecked="True" GroupName="groupDoc" Margin="809,135,0,0"/>
-        <Button Content="Добавить картинку" HorizontalAlignment="Left" Margin="67,545,0,0" VerticalAlignment="Top" Width="138" Click="Button_Click" Height="25"/>
-        <Button Content="Добавить pdf" HorizontalAlignment="Left" Margin="67,575,0,0" VerticalAlignment="Top" Width="138" Height="25"/>
-        <Button Content="Печать" HorizontalAlignment="Left" Margin="809,492,0,0" VerticalAlignment="Top" Width="75"/>
-        <ScrollViewer HorizontalAlignment="Left" Height="457" Margin="36,54,0,0" VerticalAlignment="Top" Width="684">
+        <Button Content="Добавить картинку" HorizontalAlignment="Left" Margin="1009,385,0,0" VerticalAlignment="Top" Width="138" Click="Button_Click" Height="25"/>
+        <Button Content="Добавить pdf" HorizontalAlignment="Left" Margin="1009,415,0,0" VerticalAlignment="Top" Width="138" Height="25"/>
+        <Button Content="Печать" HorizontalAlignment="Left" Margin="799,387,0,0" VerticalAlignment="Top" Width="75"/>
+        <ScrollViewer HorizontalAlignment="Left" Height="618" Margin="36,54,0,0" VerticalAlignment="Top" Width="684">
             <StackPanel HorizontalAlignment="Stretch" Height="auto"  VerticalAlignment="Stretch" Width="auto" Grid.Column="1" Margin="0,0,10,10" Background="#FFF0F0F0">
                 <WrapPanel>
                     <RadioButton x:Name="manomRadioBut" Content="МанометрПро" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="16" GroupName="groupCom"/>
@@ -66,23 +61,11 @@
                     <Label Content="Гарантийный срок" HorizontalAlignment="Left" VerticalAlignment="Top" Height="26"/>
                     <TextBox x:Name="guaranteeTextBox" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="2" Margin="137,0,0,0" VerticalAlignment="Top" Width="404" UndoLimit="1000"/>
                 </WrapPanel>
-                <WrapPanel>
-                    <Label Content="Цена единицы, без НДС руб." HorizontalAlignment="Left" VerticalAlignment="Top" Height="26"/>
-                    <TextBox x:Name="PriceWithoutTaxTextBox" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="Цена без НДС" Margin="81,0,0,0" VerticalAlignment="Top" Width="404" UndoLimit="1000"/>
-                </WrapPanel>
+                <WrapPanel/>
 
-                <WrapPanel>
-                    <Label Content="Стоимость, без НДС,руб" HorizontalAlignment="Left" VerticalAlignment="Top" Height="26"/>
-                    <TextBox x:Name="CostWithoutTaxTextBox" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="Стоимость, без НДС" Margin="106.5,0,0,0" VerticalAlignment="Top" Width="404" UndoLimit="1000"/>
-                </WrapPanel>
-                <WrapPanel>
-                    <Label Content="Сумма НДС (20%), руб" HorizontalAlignment="Left" VerticalAlignment="Top" Height="26"/>
-                    <TextBox x:Name="SummTaxTextBox" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="Сумма НДС" Margin="116,0,0,0" VerticalAlignment="Top" Width="404" UndoLimit="1000" IsEnabled="False"/>
-                </WrapPanel>
-                <WrapPanel>
-                    <Label Content="Стоимость с НДС, руб" HorizontalAlignment="Left" VerticalAlignment="Top" Height="26"/>
-                    <TextBox x:Name="SummWithTaxTextBox" ToolTip="Запятую не читает" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="Стоимость с НДС" Margin="117.5,0,0,0" VerticalAlignment="Top" Width="404" UndoLimit="1000"/>
-                </WrapPanel>
+                <WrapPanel/>
+                <WrapPanel/>
+                <WrapPanel/>
                 <WrapPanel>
                     <Label Content="Срок действия предложения" HorizontalAlignment="Left" VerticalAlignment="Top" Height="26"/>
                     <TextBox x:Name="validityTextBox" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="Срок действия" Margin="79,0,0,0" VerticalAlignment="Top" Width="404" UndoLimit="1000"/>
@@ -99,10 +82,10 @@
                     <Label Content="Место поставки" HorizontalAlignment="Left" VerticalAlignment="Top" Height="26"/>
                     <TextBox x:Name="deliveryAddressTextBox" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="Место" Margin="151,0,0,0" VerticalAlignment="Top" Width="404" UndoLimit="1000"/>
                 </WrapPanel>
-                <WrapPanel></WrapPanel>
-                <WrapPanel></WrapPanel>
-                <WrapPanel></WrapPanel>
-                <WrapPanel></WrapPanel>
+                <WrapPanel/>
+                <WrapPanel/>
+                <WrapPanel/>
+                <WrapPanel/>
                 <WrapPanel>
                     <Label Content="Исполнитель:" HorizontalAlignment="Left"  VerticalAlignment="Top"/>
                     <ComboBox x:Name="ExecutorComboBox" HorizontalAlignment="Left" VerticalAlignment="Top" Width="137" Margin="165,0,0,0" SelectionChanged="ComboBox_SelectionChanged" IsEditable="True">
@@ -111,10 +94,21 @@
                         <ListBoxItem Content="Светлана" Height="17"/>
                     </ComboBox>
                 </WrapPanel>
+                <Label Content="Товар:" HorizontalAlignment="Left"  VerticalAlignment="Top"/>
+                <DataGrid x:Name="productGrid" ScrollViewer.CanContentScroll="False"  >
+
+                </DataGrid>
 
             </StackPanel>
         </ScrollViewer>
-        <Button Content="Подготовить документы" HorizontalAlignment="Left" Margin="578,545,0,0" VerticalAlignment="Top" Width="142" Click="Button_Click_1"/>
+        <Button Content="Подготовить документы" HorizontalAlignment="Left" Margin="917,521,0,0" VerticalAlignment="Top" Width="142" Click="Button_Click_1"/>
+        <Button x:Name="btn1" HorizontalAlignment="Left" Margin="784,562,0,0" Content="Enter" VerticalAlignment="Top" Width="75" Height="28" Click="Button_Click_3"/>
+
+
+
+
+        <xctk:DoubleUpDown x:Name="productCount" HorizontalAlignment="Left" Margin="781,604,0,0" Value="1" VerticalAlignment="Top" Width="78" Minimum="0" Maximum="1000"/>
+
 
 
     </Grid>
