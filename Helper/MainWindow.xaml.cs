@@ -18,6 +18,7 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using Helper.ViewModel;
 using Helper.Changeable;
+using System.Printing;
 
 
 
@@ -29,9 +30,13 @@ namespace Helper
     /// </summary>
     public partial class MainWindow : Window
     {
+        StaticDocs staticDocs;
         public MainWindow()
         {
             InitializeComponent();
+            staticDocs = new StaticDocs(this);
+            staticDocs.PrepareStaticFilesList();
+
         }
         List<Product> products = new List<Product>();
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -48,22 +53,37 @@ namespace Helper
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
-            openFileDialog.ShowDialog();
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                DataContainer.filesToPrint.Add(openFileDialog.FileName);
+            }
+            
 
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            Specification specification = new Specification(this, products);
-            specification.PrepareSpecification();
-            Offer offer = new Offer(this);
-            offer.PrepareOffer();
+            try
+            {
+                Specification specification = new Specification(this, products);
+                specification.PrepareSpecification();
+                Offer offer = new Offer(this, products);
+                offer.PrepareOffer();
+                specification.OpenFile();
+                offer.OpenFile();
+            }
+            catch (NullReferenceException)
+            {
+
+            }
+
+
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            DataGrid product = new DataGrid();
-            //MVVM
+
         }
 
         private void DataGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
@@ -75,7 +95,6 @@ namespace Helper
         {
             products.Clear();
             productGrid.ItemsSource = null;
-            //productGrid.DataContext = new Product(1, "", "", 0, "", 0.0);
             int count = 1;
             if (productCount.Value != null)
             {
@@ -92,6 +111,32 @@ namespace Helper
                 products.Add(new Product(i + 1, "", "", 0, "", 0.0));
             }
             return products;
+        }
+        public static void ReplaceStub(string stubToReplace, string text, Word.Document worldDocument)
+        {
+            var range = worldDocument.Content;
+            range.Find.ClearFormatting();
+            object wdReplaceAll = Word.WdReplace.wdReplaceAll;
+            range.Find.Execute(FindText: stubToReplace, ReplaceWith: text, Replace: wdReplaceAll);
+        }
+
+        private void Button_Click_4(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Specification specification = new Specification(this, products);
+                specification.PrepareSpecification();
+                Offer offer = new Offer(this, products);
+                offer.PrepareOffer();
+
+                //Редакт листа пчеати
+                Printer p = new Printer(this, staticDocs.GetCheckBoxes);
+                p.PrintFiles();
+            }
+            catch (NullReferenceException)
+            {
+
+            }//!!!!
         }
     }
 }
