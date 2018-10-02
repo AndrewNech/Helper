@@ -13,17 +13,19 @@ using Helper.Abstract;
 
 namespace Helper
 {
-    //string path = "";
-    public class Offer : IDocument
+    class Offer
     {
         string pathOfChangElement = Directory.GetCurrentDirectory() + @"\doc\changeable";
         string pathOfInitialData = @"doc\initial_data";
 
 
         MainWindow mainWindow;
-        public Offer(MainWindow mainWindow)
+        List<Product> products;
+        public Offer(MainWindow mainWindow, List<Product> products)
         {
             this.mainWindow = mainWindow;
+            this.products = products;
+
 
         }
         public void PrepareOffer()
@@ -37,43 +39,70 @@ namespace Helper
 
             //Вставляем все данные
             SetHeader(wordDoc);
-            ReplaceStub("{num}", mainWindow.ProcedureNumberTextBox.Text, wordDoc); //Заменяем метку на данные из формы(здесь конкретно из текстбокса с именем textBox_fio)
-            ReplaceStub("{to_whom}", mainWindow.ClientTextBox.Text, wordDoc); //Заменяем метку на данные из формы(здесь конкретно из текстбокса с именем textBox_fio)
-            SetExecutor(wordDoc);
-            ReplaceStub("{date}", mainWindow.date.Text, wordDoc);
+            MainWindow.ReplaceStub("{num}", mainWindow.ProcedureNumberTextBox.Text, wordDoc); //Заменяем метку на данные из формы(здесь конкретно из текстбокса с именем textBox_fio)
+            MainWindow.ReplaceStub("{to_whom}", mainWindow.ClientTextBox.Text, wordDoc); //Заменяем метку на данные из формы(здесь конкретно из текстбокса с именем textBox_fio)
+            Executor executor = new Executor(mainWindow);
+            if (!executor.SetExecutor(wordDoc))
+            {
+                throw new NullReferenceException();
+            }
+
+            MainWindow.ReplaceStub("{date}", mainWindow.date.Text, wordDoc);
             EditGuarantee(wordDoc);
             SetMoney(wordDoc);
+            MainWindow.ReplaceStub("{validity}", mainWindow.validity.Text, wordDoc);
+            MainWindow.ReplaceStub("{terms_payment}", mainWindow.deliveryConditionsTextBox.Text, wordDoc);
+            MainWindow.ReplaceStub("{delivery_time}", mainWindow.deliveryTimeTextBox.Text, wordDoc);
+            MainWindow.ReplaceStub("{delivery-conditions}", mainWindow.deliveryConditionsTextBox.Text, wordDoc);
+            MainWindow.ReplaceStub("{delivery_address}", mainWindow.deliveryAddressTextBox.Text, wordDoc);
+            EditProducts(wordDoc);
 
             //Сохраняем
-            wordDoc.SaveAs2(@"D:\Job\Манометр\Helper\Helper\bin\Debug\doc\changeable\offerTmp.docx");
+            string pathToSave = Directory.GetCurrentDirectory().ToString() + @"\doc\changeable\offerTmp.docx";//Добавить класс сохранения по папкам
+
+            try
+            {
+                wordDoc.SaveAs2(pathToSave);
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                MessageBox.Show("Закройте открытый файл: offerTmp");//Исправить
+                throw new NullReferenceException();
+            }
+
             wordDoc.Close();
-
-            //Открываем полученный результат( тут будет рзветвление)
-            Process.Start(@"D:\Job\Манометр\Helper\Helper\bin\Debug\doc\changeable\offerTmp.docx");
+            if (DataContainer.filesToPrint.IndexOf(pathToSave) < 0)
+            {
+                DataContainer.filesToPrint.Add(pathToSave);//Изменить!! Никаких абсолютных путей
+            }
         }
-
+        public void OpenFile()
+        {
+            //Открываем полученный результат( тут будет рзветвление)
+            Process.Start(@"doc\changeable\offerTmp.docx");
+        }
         public void SetMoney(Document wordDoc)
         {
             //Общая сумма
-            ReplaceStub("{sum_with_tax}", WordTable.sumMoney.sum_with_tax.ToString("0.00"), wordDoc);
+            MainWindow.ReplaceStub("{sum_with_tax}", WordTable.sumMoney.sum_with_tax.ToString("0.00"), wordDoc);
             //Общая сумма прописью
             StringBuilder result = new StringBuilder();
             decimal sum = Decimal.Parse(WordTable.sumMoney.sum_with_tax.ToString("0.00"));
             Sum.Пропись(sum, Валюта.Рубли, result);
-            ReplaceStub("{sum_in_string}", result.ToString(), wordDoc);
+            MainWindow.ReplaceStub("{sum_in_string}", result.ToString(), wordDoc);
             result.Clear();
             //НДС
-            ReplaceStub("{sum_tax}", WordTable.sumMoney.sum_tax.ToString("0.00"), wordDoc);
+            MainWindow.ReplaceStub("{sum_tax}", WordTable.sumMoney.sum_tax.ToString("0.00"), wordDoc);
             //Ндс прописью
             sum = Decimal.Parse(WordTable.sumMoney.sum_tax.ToString("0.00"));
             Sum.Пропись(sum, Валюта.Рубли, result);
-            ReplaceStub("{sum_tax_in_string}", result.ToString(), wordDoc);
+            MainWindow.ReplaceStub("{sum_tax_in_string}", result.ToString(), wordDoc);
             result.Clear();
         }
         public void EditGuarantee(Document wordDoc)
         {
             string guarantee = mainWindow.guaranteeTextBox.Text;
-            if (guarantee.Length > 2 && guarantee!="112" && guarantee != "113" && guarantee != "114")
+            if (guarantee.Length > 2 && guarantee != "112" && guarantee != "113" && guarantee != "114")
             { guarantee = guarantee.Substring(1); }
             else if (guarantee.Length > 1 && guarantee != "12" && guarantee != "13" && guarantee != "14")
             {
@@ -81,66 +110,55 @@ namespace Helper
             }
             switch (guarantee)
             {
-                case "1": { ReplaceStub("{guarantee}", mainWindow.guaranteeTextBox.Text+" месяц", wordDoc);break; }
-                case "2": 
-                case "3": 
-                case "4": { ReplaceStub("{guarantee}", mainWindow.guaranteeTextBox.Text + " месяца", wordDoc); break; }
-                default: { ReplaceStub("{guarantee}", mainWindow.guaranteeTextBox.Text + " месяцев", wordDoc); break; }
+                case "1": { MainWindow.ReplaceStub("{guarantee}", mainWindow.guaranteeTextBox.Text + " месяц", wordDoc); break; }
+                case "2":
+                case "3":
+                case "4": { MainWindow.ReplaceStub("{guarantee}", mainWindow.guaranteeTextBox.Text + " месяца", wordDoc); break; }
+                default: { MainWindow.ReplaceStub("{guarantee}", mainWindow.guaranteeTextBox.Text + " месяцев", wordDoc); break; }
             }
 
-            
         }
-        public void SetExecutor(Document wordDoc)
+
+        private void EditProducts(Document wordDoc)
         {
-            switch (mainWindow.ExecutorComboBox.Text)
+            string result = "";
+
+            foreach (Product product in products)
             {
-                case "Маша":
-                    {
-                        ReplaceStub("{executor_info}", "нет данных", wordDoc);
-                        ReplaceStub("{executor_email}", "нет данных", wordDoc); break;
-                    }
-                case "Аделина":
-                    {
-                        ReplaceStub("{executor_info}", DataContainer.GetAdelinInfo().name, wordDoc);
-                        ReplaceStub("{executor_email}", DataContainer.GetAdelinInfo().email, wordDoc); break;
-                    }
-                case "Светлана":
-                    {
-                        ReplaceStub("{executor_info}", "нет данных", wordDoc);
-                        ReplaceStub("{executor_email}", "нет данных", wordDoc); break;
-                    }
-                default:
-                    {
-                        MessageBox.Show("Выберите исполнителя.");
-                        throw new Exception();
-                    }
+                if (result != "")
+                {
+                    result += ", ";
+                }
+                Unit unit = new Unit(product.кол_во, product.ед_изм);
+                result += product.наименование_товара + " - " + product.кол_во + " " + product.ед_изм;//unit.GetUnitInString();  Словарнная запись размерности.
             }
+            MainWindow.ReplaceStub("{products}", result, wordDoc);
         }
+
+
+
         public void SetHeader(Document wordDoc)
         {
             if (mainWindow.manomRadioBut.IsChecked == true)
             {
-                ReplaceStub("{company_name}", DataContainer.manomName, wordDoc);
-                ReplaceStub("{bank_number}", DataContainer.manomBanknumber, wordDoc);
-                ReplaceStub("{bank_info}", DataContainer.manomBottomLine, wordDoc);
+                MainWindow.ReplaceStub("{company_name}", DataContainer.manomName, wordDoc);
+                MainWindow.ReplaceStub("{bank_number}", DataContainer.manomBanknumber, wordDoc);
+                MainWindow.ReplaceStub("{bank_info}", DataContainer.manomBottomLine, wordDoc);
+                MainWindow.ReplaceStub("{bank_address}", DataContainer.manomBanknAddress, wordDoc);
+
             }
             else if (mainWindow.hollRadioBut.IsChecked == true)
             {
-                ReplaceStub("{company_name}", DataContainer.hollName, wordDoc);
-                ReplaceStub("{bank_number}", DataContainer.hollBanknumber, wordDoc);
-                ReplaceStub("{bank_info}", DataContainer.hollBottomLine, wordDoc);
+                MainWindow.ReplaceStub("{company_name}", DataContainer.hollName, wordDoc);
+                MainWindow.ReplaceStub("{bank_number}", DataContainer.hollBanknumber, wordDoc);
+                MainWindow.ReplaceStub("{bank_info}", DataContainer.hollBottomLine, wordDoc);
+                MainWindow.ReplaceStub("{bank_address}", DataContainer.hollBanknAddress, wordDoc);
+
             }
             else
             {
                 throw new Exception();
             }
-        }
-        private void ReplaceStub(string stubToReplace, string text, Word.Document worldDocument)
-        {
-            var range = worldDocument.Content;
-            range.Find.ClearFormatting();
-            object wdReplaceAll = Word.WdReplace.wdReplaceAll;
-            range.Find.Execute(FindText: stubToReplace, ReplaceWith: text, Replace: wdReplaceAll);
         }
     }
 }

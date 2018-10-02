@@ -17,6 +17,7 @@ namespace Helper.Changeable
     {
         string pathOfChangElement = Directory.GetCurrentDirectory() + @"\doc\changeable";
         string pathOfInitialData = @"doc\initial_data";
+        const string tmpPath = @"\doc\changeable\specificationTmp.docx";
 
         MainWindow mainWindow;
         List<Product> products = new List<Product>();
@@ -39,18 +40,39 @@ namespace Helper.Changeable
 
             //Вставляем все данные
             SetHeader(wordDoc);
-            ReplaceStub("{num}", mainWindow.ProcedureNumberTextBox.Text, wordDoc); //Заменяем метку на данные из формы(здесь конкретно из текстбокса с именем textBox_fio)
-            SetExecutor(wordDoc);
-            ReplaceStub("{date}", mainWindow.date.Text, wordDoc);
+            MainWindow.ReplaceStub("{num}", mainWindow.ProcedureNumberTextBox.Text, wordDoc); //Заменяем метку на данные из формы(здесь конкретно из текстбокса с именем textBox_fio)
+            Executor executor = new Executor(mainWindow);
+            if (!executor.SetExecutor(wordDoc))
+            {
+                throw new NullReferenceException();
+            }
+            MainWindow.ReplaceStub("{date}", mainWindow.date.Text, wordDoc);
             ChangeTable(wordDoc);
             SetMoney(wordDoc);
+            MainWindow.ReplaceStub("{tech_description}", mainWindow.techDescriptionTextBox.Text, wordDoc);
 
             //Сохраняем
-            wordDoc.SaveAs2(@"D:\Job\Манометр\Helper\Helper\bin\Debug\doc\changeable\specificationTmp.docx");
-            wordDoc.Close();
+            try
+            {
+                wordDoc.SaveAs2(Directory.GetCurrentDirectory() + tmpPath);
 
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                MessageBox.Show("Закройте открытый файл: specificationTmp");//Исправить
+                throw new NullReferenceException();
+            }
+            wordDoc.Close();
+            if (DataContainer.filesToPrint.IndexOf(Directory.GetCurrentDirectory() + tmpPath) < 0)
+            {
+                DataContainer.filesToPrint.Add(Directory.GetCurrentDirectory() + tmpPath);//Изменить!! Никаких абсолютных путей!
+            }
+
+        }
+        public void OpenFile()
+        {
             //Открываем полученный результат( тут будет рзветвление)
-            Process.Start(@"D:\Job\Манометр\Helper\Helper\bin\Debug\doc\changeable\specificationTmp.docx");//Вынести в константу
+            Process.Start(Directory.GetCurrentDirectory() + tmpPath);//Вынести в константу
         }
         private void ChangeTable(Document wordDoc)
         {
@@ -63,72 +85,45 @@ namespace Helper.Changeable
         public void SetMoney(Document wordDoc)
         {
             //Общая сумма
-            ReplaceStub("{sum_with_tax}", WordTable.sumMoney.sum_with_tax.ToString("0.00"), wordDoc);
+            MainWindow.ReplaceStub("{sum_with_tax}", WordTable.sumMoney.sum_with_tax.ToString("0.00"), wordDoc);
             //Общая сумма прописью
             StringBuilder result = new StringBuilder();
             decimal sum = Decimal.Parse(WordTable.sumMoney.sum_with_tax.ToString("0.00"));
             Sum.Пропись(sum, Валюта.Рубли, result);
-            ReplaceStub("{sum_in_string}", result.ToString(), wordDoc);
+            MainWindow.ReplaceStub("{sum_in_string}", result.ToString(), wordDoc);
             result.Clear();
             //НДС
-            ReplaceStub("{sum_tax}", WordTable.sumMoney.sum_tax.ToString("0.00"), wordDoc);
+            MainWindow.ReplaceStub("{sum_tax}", WordTable.sumMoney.sum_tax.ToString("0.00"), wordDoc);
             //Ндс прописью
             sum = Decimal.Parse(WordTable.sumMoney.sum_tax.ToString("0.00"));
             Sum.Пропись(sum, Валюта.Рубли, result);
-            ReplaceStub("{sum_tax_in_string}", result.ToString(), wordDoc);
+            MainWindow.ReplaceStub("{sum_tax_in_string}", result.ToString(), wordDoc);
             result.Clear();
         }
-        public void SetExecutor(Document wordDoc)
-        {
-            switch (mainWindow.ExecutorComboBox.Text)
-            {
-                case "Маша":
-                    {
-                        ReplaceStub("{executor_info}", "нет данных", wordDoc);
-                        ReplaceStub("{executor_email}", "нет данных", wordDoc); break;
-                    }
-                case "Аделина":
-                    {
-                        ReplaceStub("{executor_info}", DataContainer.GetAdelinInfo().name, wordDoc);
-                        ReplaceStub("{executor_email}", DataContainer.GetAdelinInfo().email, wordDoc); break;
-                    }
-                case "Светлана":
-                    {
-                        ReplaceStub("{executor_info}", "нет данных", wordDoc);
-                        ReplaceStub("{executor_email}", "нет данных", wordDoc); break;
-                    }
-                default:
-                    {
-                        MessageBox.Show("Выберите исполнителя.");
-                        throw new Exception();
-                    }
-            }
-        }
+
+
         public void SetHeader(Document wordDoc)
         {
             if (mainWindow.manomRadioBut.IsChecked == true)
             {
-                ReplaceStub("{company_name}", DataContainer.manomName, wordDoc);
-                ReplaceStub("{bank_number}", DataContainer.manomBanknumber, wordDoc);
-                ReplaceStub("{bank_info}", DataContainer.manomBottomLine, wordDoc);
+                MainWindow.ReplaceStub("{company_name}", DataContainer.manomName, wordDoc);
+                MainWindow.ReplaceStub("{bank_number}", DataContainer.manomBanknumber, wordDoc);
+                MainWindow.ReplaceStub("{bank_info}", DataContainer.manomBottomLine, wordDoc);
+                MainWindow.ReplaceStub("{bank_address}", DataContainer.manomBanknAddress, wordDoc);
+
             }
             else if (mainWindow.hollRadioBut.IsChecked == true)
             {
-                ReplaceStub("{company_name}", DataContainer.hollName, wordDoc);
-                ReplaceStub("{bank_number}", DataContainer.hollBanknumber, wordDoc);
-                ReplaceStub("{bank_info}", DataContainer.hollBottomLine, wordDoc);
+                MainWindow.ReplaceStub("{company_name}", DataContainer.hollName, wordDoc);
+                MainWindow.ReplaceStub("{bank_number}", DataContainer.hollBanknumber, wordDoc);
+                MainWindow.ReplaceStub("{bank_info}", DataContainer.hollBottomLine, wordDoc);
+                MainWindow.ReplaceStub("{bank_address}", DataContainer.hollBanknAddress, wordDoc);
+
             }
             else
             {
                 throw new Exception();
             }
-        }
-        private void ReplaceStub(string stubToReplace, string text, Word.Document worldDocument)
-        {
-            var range = worldDocument.Content;
-            range.Find.ClearFormatting();
-            object wdReplaceAll = Word.WdReplace.wdReplaceAll;
-            range.Find.Execute(FindText: stubToReplace, ReplaceWith: text, Replace: wdReplaceAll);
         }
     }
 }
